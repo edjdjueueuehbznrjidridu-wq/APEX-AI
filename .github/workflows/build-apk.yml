@@ -40,7 +40,7 @@ jobs:
 
       - name: Install Android platforms and build-tools
         run: |
-          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools" "ndk;26.1.10909125"
 
       - name: Extract project ZIP
         run: |
@@ -58,6 +58,12 @@ jobs:
           fi
           test -f extracted/settings.gradle
           ls -la extracted/
+
+      - name: Fix Chaquopy abiFilters
+        run: |
+          # Add ndk.abiFilters required by Chaquopy
+          sed -i '/defaultConfig {/a\        ndk {\n            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"\n        }' extracted/app/build.gradle
+          cat extracted/app/build.gradle
 
       - name: Verify project integrity
         run: |
