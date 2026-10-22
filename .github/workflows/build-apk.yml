@@ -1,10 +1,10 @@
-name: Build APEX V10 APK from ZIP
+name: Build APEX V11 APK from ZIP
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'APEX_V10_ULTIMATE_Android_Project.zip'
+      - 'APEX_V11_ULTIMATE_Android_Project.zip'
       - '.github/workflows/build-apk.yml'
 
 permissions:
@@ -12,9 +12,9 @@ permissions:
 
 jobs:
   build:
-    name: Build APEX APK
+    name: Build APEX V11 APK
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - name: Get files
         uses: actions/checkout@v4
@@ -44,11 +44,11 @@ jobs:
 
       - name: Extract project ZIP
         run: |
-          test -f APEX_V10_ULTIMATE_Android_Project.zip
+          test -f APEX_V11_ULTIMATE_Android_Project.zip
           mkdir -p extracted
-          unzip -q APEX_V10_ULTIMATE_Android_Project.zip -d extracted
+          unzip -q APEX_V11_ULTIMATE_Android_Project.zip -d extracted
           if [ -f extracted/settings.gradle ]; then
-            echo "Project extracted to extracted/"
+            echo "Project at extracted/"
           else
             TOP=$(ls -1 extracted | head -1)
             if [ -d "extracted/$TOP" ] && [ -f "extracted/$TOP/settings.gradle" ]; then
@@ -61,8 +61,9 @@ jobs:
 
       - name: Fix Chaquopy abiFilters
         run: |
-          # Add ndk.abiFilters required by Chaquopy
-          sed -i '/defaultConfig {/a\        ndk {\n            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"\n        }' extracted/app/build.gradle
+          if ! grep -q 'abiFilters' extracted/app/build.gradle; then
+            sed -i '/defaultConfig {/a\        ndk {\n            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"\n        }' extracted/app/build.gradle
+          fi
           cat extracted/app/build.gradle
 
       - name: Verify project integrity
@@ -78,7 +79,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: APEX-V10-ULTIMATE-debug-apk
+          name: APEX-V11-ULTIMATE-debug-apk
           path: extracted/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
